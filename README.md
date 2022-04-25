@@ -8,3 +8,5 @@ For example, if you want the rows from the first rdlevel and the VFX from the se
   Also, the final rdlevel will have the metadata (difficulty, author, song title, song artist etc.) of the first rdlevel given.
   
   Any issues like crashes or just bugs I didn't think of can be reported here or straight to me at 9thCore#5404! I might forget about this repo though sometimes so reporting here might not grant an immediate response.
+
+  I have no idea how to make releases for Linux and Mac using LÖVE and I don't really have anything to test on to make sure it works so you'll have to compile the program yourself if you use one of those or use a program to run executables on your pc. Sorry!
