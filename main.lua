@@ -910,6 +910,13 @@ function love.wheelmoved(x,y)
 
 end
 
+function love.load(args)
+
+	local data = love.image.newImageData("icon.png")
+	local success = love.window.setIcon(data)
+
+end
+
 function love.update(dt)
 
 	if currentState == STATE_INPUTLIST and love.mouse.isDown(1) then
