@@ -1,6 +1,6 @@
 --[[
 
-	RD Level Merger 1.0 (<-- i'll probably forget to change this version later)
+	RD Level Merger 1.2 (<-- i'll probably forget to change this version later)
 
 	
 	-- WHAT IS THIS? --
@@ -36,7 +36,7 @@ local encoder = require "encoder"
 local credits = require "credits"
 
 
-local __VERSION = "1.0"
+local __VERSION = "1.2"
 
 
 math.randomseed(os.time())
@@ -162,11 +162,12 @@ local function createLoader(x, y, w, h)
 
 	inputs[btn.idx].actions = {
 		addRows = tickboxes[1].active,
-		addVFX = tickboxes[2].active,
-		addSFX = tickboxes[3].active,
-		addRooms = tickboxes[4].active,
-		addDeco = tickboxes[5].active,
-		addConds = tickboxes[6].active
+		keepRowEvents = tickboxes[2].active,
+		addVFX = tickboxes[3].active,
+		addSFX = tickboxes[4].active,
+		addRooms = tickboxes[5].active,
+		addDeco = tickboxes[6].active,
+		addConds = tickboxes[7].active
 	}
 
 	btn.func = function()
@@ -228,11 +229,12 @@ local function createLoader(x, y, w, h)
 
 		local cnt = #tickboxes/2
 		tickboxes[cnt+1].active = input.addRows
-		tickboxes[cnt+2].active = input.addVFX
-		tickboxes[cnt+3].active = input.addSFX
-		tickboxes[cnt+4].active = input.addRooms
-		tickboxes[cnt+5].active = input.addDeco
-		tickboxes[cnt+6].active = input.addConds
+		tickboxes[cnt+2].active = input.keepRowEvents
+		tickboxes[cnt+3].active = input.addVFX
+		tickboxes[cnt+4].active = input.addSFX
+		tickboxes[cnt+5].active = input.addRooms
+		tickboxes[cnt+6].active = input.addDeco
+		tickboxes[cnt+7].active = input.addConds
 
 	end)
 
@@ -671,11 +673,12 @@ createButton(150, 550, 200, 75, "Back", STATE_SETTINGS, function()
 
 	inputs[stateArg].actions = {
 		addRows = tickboxes[cnt+1].active,
-		addVFX = tickboxes[cnt+2].active,
-		addSFX = tickboxes[cnt+3].active,
-		addRooms = tickboxes[cnt+4].active,
-		addDeco = tickboxes[cnt+5].active,
-		addConds = tickboxes[cnt+6].active
+		keepRowEvents = tickboxes[cnt+2].active,
+		addVFX = tickboxes[cnt+3].active,
+		addSFX = tickboxes[cnt+4].active,
+		addRooms = tickboxes[cnt+5].active,
+		addDeco = tickboxes[cnt+6].active,
+		addConds = tickboxes[cnt+7].active
 	}
 	
 	currentState = STATE_INPUTLIST
@@ -790,11 +793,12 @@ end)
 
 local spacing = 60
 createTickbox(800+250, 140+spacing*0, 300, 50, false, "Add rows", "Adds all the rows to the first rdlevel, as well as their corresponding beats.\nThere will not be more than 16 rows total in the output and there will not be more than 4 rows per room so you might lose beats if not careful!")
-createTickbox(800+250, 140+spacing*1, 300, 50, true , "Add VFX", "Adds the vfx events to the first rdlevel.\nIf there is an event that affects a particular row and said row isn't present, it will simply delete the event!")
-createTickbox(800+250, 140+spacing*2, 300, 50, true , "Add sounds", "Adds the sounds to the first rdlevel.\nIf there is an event that affects a particular row and said row isn't present, it will simply delete the event!")
-createTickbox(800+250, 140+spacing*3, 300, 50, true , "Add room events", "Adds all the room events to the first rdlevel.")
-createTickbox(800+250, 140+spacing*4, 300, 50, true , "Add decorations", "Adds all the decorations to the first rdlevel, as well as their corresponding events.")
-createTickbox(800+250, 140+spacing*5, 300, 50, true , "Add conditionals", "Adds all the conditionals to the first rdlevel.\nOtherwise, events might have invalid conditionals and not work!")
+createTickbox(800+250, 140+spacing*1, 300, 50, true, "Keep row events", "Keep row-dependent events (not the beats) such as Move Row events even if the rows aren't merged on this level.\nNote that this will not check for invalid events, it will not get rid of the event if the row doesn't exist!\nWill not do anything if 'Add rows' is enabled.")
+createTickbox(800+250, 140+spacing*2, 300, 50, true , "Add VFX", "Adds the vfx events to the first rdlevel.\nIf there is an event that affects a particular row and said row isn't present, it will simply delete the event!")
+createTickbox(800+250, 140+spacing*3, 300, 50, true , "Add sounds", "Adds the sounds to the first rdlevel.\nIf there is an event that affects a particular row and said row isn't present, it will simply delete the event!")
+createTickbox(800+250, 140+spacing*4, 300, 50, true , "Add room events", "Adds all the room events to the first rdlevel.")
+createTickbox(800+250, 140+spacing*5, 300, 50, true , "Add decorations", "Adds all the decorations to the first rdlevel, as well as their corresponding events.")
+createTickbox(800+250, 140+spacing*6, 300, 50, true , "Add conditionals", "Adds all the conditionals to the first rdlevel.\nOtherwise, events might have invalid conditionals and not work!")
 
 
 local cnt = #tickboxes
@@ -840,12 +844,43 @@ function love.filedropped(file)
 
 		end
 
-		local status, arg = readFile(file:read():sub(4,-1), true)
+		local str = file:read():sub(4,-1)
+		local isstringer = false
+
+		for i=1,#str do
+			local ch = str:sub(i,i)
+			if ch == '"' then
+				isstringer = not isstringer
+			end
+
+			if isstringer then
+				if ch == '	' then -- tab
+					str = str:sub(1,i-1) .. '__thisusedtobeatabbuttoavoiddeathitsnot__' .. str:sub(i+1,-1)
+					i = i - 1
+
+				elseif str:sub(i,i+1) == '\r\n' and str:sub(i-2,i-1) ~= '},' then
+					str = str:sub(1,i-1) .. str:sub(i+4,-1)
+					i = i - 1
+
+				end
+			end
+
+		end
+
+		local status, arg = readFile(str, true)
 
 		if status then
 
 			lastError = ""
 			inputs[stateArg].level = arg
+
+			for _,e in ipairs(arg.events) do
+				for k,v in pairs(e) do
+					if type(v) == 'string' then
+						v = v:gsub('__thisusedtobeatabbuttoavoiddeathitsnot__', '	')
+					end
+				end
+			end
 
 			currentState = STATE_INPUTLIST
 			stateArg = 0
@@ -853,6 +888,7 @@ function love.filedropped(file)
 		else
 
 			lastError = "Uh oh!\nCould not read the file!\nAre you sure it's valid?"
+			print(arg)
 
 		end
 
@@ -914,6 +950,8 @@ function love.load(args)
 
 	local data = love.image.newImageData("icon.png")
 	local success = love.window.setIcon(data)
+
+	love.window.setTitle('Level Merger')
 
 end
 

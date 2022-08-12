@@ -40,6 +40,7 @@ local t = {
 	InvertColors = 3,
 	Comment = 3,
 	NewWindowDance = 3,
+	AdvanceText = 3,
 
 	-- Sound events
 	PlaySong = 4,

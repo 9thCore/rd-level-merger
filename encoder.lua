@@ -99,6 +99,8 @@ function encoder.encodeInJsonFormat(t, tabs)
 
 			if v == "IAMPRAYINGANDSHITTINGANDHOPINGTHATNOBODYWILLEVERUSESUCHACOMPLICATEDSETOFLETTERSPLEASEIDONOTWANTANYEDGECASESPOPPINGUP:EDEGABUDGETCUTS::EDEGABUDGETCUTS:__NULL_NULL____NULL" then
 				s = "null"
+			elseif v == '__thiswasatabplsdontdieoverit__' then
+				s = '	'
 			end
 
 			local finalstr = ""
@@ -141,8 +143,6 @@ function encoder.tryencode(inputs, inputcount)
 	final.settings = inputs[1].level.settings -- steal the metadata from the first level lmao
 
 	for _,input in ipairs(inputs) do
-
-		print(_)
 
 		local actions = input.actions
 		input = input.level
@@ -289,6 +289,16 @@ function encoder.tryencode(inputs, inputcount)
 
 					end
 
+				end
+
+			end
+
+		elseif actions.keepRowEvents then
+
+			for _,v in ipairs(input.events) do
+
+				if types[v.type] ~= TYPE_ROW and v.row then
+					table.insert(final.events, v)
 				end
 
 			end
